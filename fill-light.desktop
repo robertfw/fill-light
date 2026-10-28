@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Fill light
-Comment=Light the side monitors as a fill light for video calls
-Exec=/home/robertfw/prj/fill-light/bin/fill-light
-Icon=lightbulb
-X-KDE-autostart-phase=2
-X-GNOME-Autostart-enabled=true

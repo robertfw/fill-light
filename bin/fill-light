@@ -6,12 +6,39 @@
   fill-light off | toggle | edit
   fill-light status                   JSON: on, preset, set, camera, lit outputs
   fill-light presets                  preset names
+  fill-light install | uninstall      start the tray app at login (or stop doing so)
 """
 
+import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+AUTOSTART = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "autostart" / "fill-light.desktop"
+DESKTOP_ENTRY = """[Desktop Entry]
+Type=Application
+Name=Fill light
+Comment=Light the side monitors as a fill light for video calls
+Exec={exec}
+Icon=lightbulb
+X-KDE-autostart-phase=2
+X-GNOME-Autostart-enabled=true
+"""
+
+
+def install() -> int:
+    AUTOSTART.parent.mkdir(parents=True, exist_ok=True)
+    AUTOSTART.unlink(missing_ok=True)  # may be a symlink from an older install
+    AUTOSTART.write_text(DESKTOP_ENTRY.format(exec=Path(__file__).resolve()))
+    print(f"fill-light: autostart entry written to {AUTOSTART}")
+    return 0
+
+
+def uninstall() -> int:
+    AUTOSTART.unlink(missing_ok=True)
+    print(f"fill-light: removed {AUTOSTART}")
+    return 0
 
 
 def control(args: list[str]) -> int:
@@ -51,6 +78,10 @@ if __name__ == "__main__":
     if len(sys.argv) == 1 or sys.argv[1] == "tray":
         from fill_light.app import main
         sys.exit(main())
+    if sys.argv[1] == "install":
+        sys.exit(install())
+    if sys.argv[1] == "uninstall":
+        sys.exit(uninstall())
     if sys.argv[1] in ("-h", "--help", "help"):
         print(__doc__.strip())
         sys.exit(0)
