@@ -1,6 +1,6 @@
 # fill-light
 
-Turns the side (and top) monitors into a fill light for video calls. Lives in the Plasma tray.
+Use your extra monitors (you have more than one, right?) into a fill light for video calls. Lives in the Plasma tray.
 
 > **AI disclaimer:** this was vibe coded: written almost entirely by an AI coding agent (Claude),
 > tried out on one machine, and not otherwise reviewed. It may be wrong in ways nobody has
