@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""fill-light: light the side (and top) monitors as a fill light for video calls.
+
+  fill-light                          run the tray app (autostarted)
+  fill-light on [PRESET] [SET]        SET is sides+top or sides
+  fill-light off | toggle | edit
+  fill-light status                   JSON: on, preset, set, camera, lit outputs
+  fill-light presets                  preset names
+"""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+
+def control(args: list[str]) -> int:
+    import dbus
+
+    from fill_light.app import BUS_NAME, OBJECT_PATH
+    from fill_light.config import SCREEN_SETS
+
+    try:
+        obj = dbus.SessionBus().get_object(BUS_NAME, OBJECT_PATH)
+    except dbus.DBusException:
+        print("fill-light: the tray app isn't running (start it with `fill-light`)", file=sys.stderr)
+        return 1
+    call = lambda method, *a: obj.get_dbus_method(method, BUS_NAME)(*a)
+    cmd, rest = args[0], args[1:]
+    try:
+        if cmd == "on":
+            sets = [a for a in rest if a in SCREEN_SETS]
+            names = [a for a in rest if a not in SCREEN_SETS]
+            print(call("On", " ".join(names), sets[0] if sets else ""))
+        elif cmd in ("off", "toggle", "status"):
+            print(call(cmd.capitalize()))
+        elif cmd == "edit":
+            call("Edit")
+        elif cmd == "presets":
+            print("\n".join(call("Presets")))
+        else:
+            print(__doc__.strip(), file=sys.stderr)
+            return 2
+    except dbus.DBusException as e:
+        print(f"fill-light: {e.get_dbus_message()}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1 or sys.argv[1] == "tray":
+        from fill_light.app import main
+        sys.exit(main())
+    if sys.argv[1] in ("-h", "--help", "help"):
+        print(__doc__.strip())
+        sys.exit(0)
+    sys.exit(control(sys.argv[1:]))
